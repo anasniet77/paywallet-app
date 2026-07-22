@@ -22,7 +22,7 @@ public class DigitalWalletApplication {
     @EventListener({ApplicationReadyEvent.class})
     public void launchBrowser() {
         try {
-            String url = "http://localhost:8080";
+            String url = "https://paywallet-app.onrender.com/";
             if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
                 Desktop.getDesktop().browse(new URI(url));
                 System.out.println("🌐 Browser launched automatically!");

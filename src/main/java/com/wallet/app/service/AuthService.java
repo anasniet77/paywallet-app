@@ -5,7 +5,8 @@ import com.wallet.app.entity.Wallet;
 import com.wallet.app.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender; // Explicitly fixed import path
+import org.springframework.mail.javamail.JavaMailSender; 
+import org.springframework.scheduling.annotation.Async; // 👈 1. Import added here
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.Random;
@@ -35,6 +36,7 @@ public class AuthService {
         return String.format("%06d", new Random().nextInt(999999));
     }
 
+    @Async // 👈 2. Annotation added here so it runs in the background
     public void sendOtpEmail(String toEmail, String otp) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();

@@ -40,7 +40,7 @@ public class AuthService {
     public void sendOtpEmail(String toEmail, String otp) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom("your_actual_gmail@gmail.com");
+            message.setFrom("titumaalo@gmail.com");
             message.setTo(toEmail);
             message.setSubject("Secure Wallet Access Code - " + System.currentTimeMillis());
             message.setText("Your identity verification code is: " + otp + "\nValid for 5 minutes.");

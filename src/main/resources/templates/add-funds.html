@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Add Funds</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ink: #0f2a1f;
+            --paper: #ffffff;
+            --paper-raised: #ffffff;
+            --rule: #e6e9e7;
+            --emerald: #0f7a4c;
+            --emerald-deep: #0b5c3a;
+            --emerald-tint: #eaf5ef;
+            --muted: #7c877f;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            background: var(--paper);
+            font-family: 'Inter', sans-serif;
+            color: var(--ink);
+            min-height: 100vh;
+        }
+
+        .page-wrap {
+            max-width: 460px;
+            margin: 0 auto;
+            padding: 72px 24px 60px;
+        }
+
+        .back-link {
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.14em;
+            color: var(--muted);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 36px;
+            transition: color 0.2s ease;
+        }
+        .back-link:hover { color: var(--emerald-deep); }
+
+        .card-ledger {
+            background: var(--paper-raised);
+            border-radius: 20px;
+            padding: 40px 36px 36px;
+            box-shadow: 0 1px 3px rgba(15,42,31,0.05), 0 24px 56px -20px rgba(15,42,31,0.14);
+            position: relative;
+            overflow: hidden;
+        }
+        .card-ledger::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--emerald) 0%, #4fa87f 60%, var(--emerald) 100%);
+        }
+
+        .eyebrow {
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--emerald-deep);
+            margin-bottom: 6px;
+        }
+
+        h2.title {
+            font-family: 'Manrope', sans-serif;
+            font-weight: 800;
+            font-size: 1.6rem;
+            color: var(--ink);
+            margin-bottom: 28px;
+            letter-spacing: -0.02em;
+        }
+
+        /* Live amount display — signature element */
+        .amount-display {
+            font-family: 'Manrope', sans-serif;
+            font-weight: 700;
+            font-size: 2.6rem;
+            line-height: 1;
+            font-variant-numeric: tabular-nums;
+            color: var(--ink);
+            padding-bottom: 18px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: baseline;
+            gap: 4px;
+            letter-spacing: -0.02em;
+            background: linear-gradient(to bottom, transparent calc(100% - 2px), var(--rule) 2px);
+            transition: background 0.25s ease;
+        }
+        .amount-display .rupee { font-size: 1.5rem; font-weight: 600; color: var(--muted); }
+        .amount-display.filled { background: linear-gradient(to bottom, transparent calc(100% - 2px), var(--emerald) 2px); }
+        .amount-display .placeholder-zero { color: #d3d9d5; }
+
+        .field-group { margin-bottom: 22px; }
+
+        .field-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        /* Bank picker: real <select> stays in the DOM (hidden) for form
+           submission; a rich custom control drives it visually. */
+        .bank-picker {
+            position: relative;
+        }
+        .bank-picker select.native-select {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0,0,0,0);
+            border: 0;
+        }
+
+        .bank-trigger {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #fbfcfb;
+            border: 1px solid var(--rule);
+            border-radius: 14px;
+            padding: 12px 14px;
+            cursor: pointer;
+            text-align: left;
+            transition: border-color 0.2s ease, background 0.2s ease;
+        }
+        .bank-trigger:hover { border-color: #c9d3ce; }
+        .bank-trigger.open, .bank-trigger:focus-visible {
+            outline: none;
+            border-color: var(--emerald);
+            background: #ffffff;
+        }
+
+        .bank-avatar {
+            flex: none;
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            background: var(--emerald-tint);
+            color: var(--emerald-deep);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Manrope', sans-serif;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+
+        .bank-trigger-text { flex: 1; min-width: 0; }
+        .bank-trigger-name {
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: var(--ink);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .bank-trigger-sub {
+            font-size: 0.74rem;
+            color: var(--muted);
+            margin-top: 1px;
+        }
+
+        .bank-chevron {
+            flex: none;
+            width: 9px;
+            height: 9px;
+            border-right: 1.5px solid var(--muted);
+            border-bottom: 1.5px solid var(--muted);
+            transform: rotate(45deg);
+            transition: transform 0.2s ease;
+            margin-right: 4px;
+        }
+        .bank-trigger.open .bank-chevron { transform: rotate(-135deg); }
+
+        .bank-menu {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            border: 1px solid var(--rule);
+            border-radius: 14px;
+            box-shadow: 0 12px 32px -12px rgba(15,42,31,0.2);
+            padding: 6px;
+            z-index: 20;
+            max-height: 240px;
+            overflow-y: auto;
+            display: none;
+        }
+        .bank-menu.open { display: block; }
+
+        .bank-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+        .bank-option:hover, .bank-option.highlighted { background: var(--emerald-tint); }
+        .bank-option.selected .bank-trigger-name { color: var(--emerald-deep); }
+        .bank-option.selected::after {
+            content: "";
+            width: 6px;
+            height: 10px;
+            border-right: 1.5px solid var(--emerald);
+            border-bottom: 1.5px solid var(--emerald);
+            transform: rotate(45deg);
+            margin-left: auto;
+            margin-right: 4px;
+        }
+
+        .amount-input {
+            width: 100%;
+            border: none;
+            border-bottom: 1px solid var(--rule);
+            padding: 8px 0;
+            font-size: 1rem;
+            background: transparent;
+            font-family: 'IBM Plex Sans', sans-serif;
+            color: var(--ink);
+            transition: border-color 0.2s ease;
+        }
+        .amount-input:focus { outline: none; border-bottom-color: var(--emerald); }
+        .amount-input::placeholder { color: #b7c0ba; }
+
+        /* Quick amount chips */
+        .chip-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+        .chip {
+            border: 1px solid var(--rule);
+            background: #fbfcfb;
+            color: var(--ink);
+            font-size: 0.78rem;
+            font-weight: 600;
+            padding: 6px 13px;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .chip:hover { border-color: var(--emerald); color: var(--emerald-deep); }
+        .chip.active { background: var(--emerald); border-color: var(--emerald); color: #fff; }
+
+        .btn-confirm {
+            width: 100%;
+            background: var(--ink);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 15px;
+            font-weight: 600;
+            font-size: 0.92rem;
+            letter-spacing: 0.01em;
+            margin-top: 12px;
+            transition: background 0.25s ease, transform 0.15s ease;
+        }
+        .btn-confirm:hover { background: var(--emerald-deep); transform: translateY(-1px); }
+        .btn-confirm:active { transform: translateY(0); }
+
+        .empty-state {
+            font-size: 0.9rem;
+            color: var(--muted);
+            line-height: 1.6;
+            padding: 8px 0 4px;
+        }
+        .empty-state a { color: var(--emerald-deep); font-weight: 600; text-decoration: none; }
+        .empty-state a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="page-wrap">
+        <a href="/dashboard" class="back-link">&larr; BACK</a>
+
+        <div class="card-ledger">
+            <div class="eyebrow">Wallet · Deposit</div>
+            <h2 class="title">Add funds</h2>
+
+            <form th:if="${!linkedBanks.isEmpty()}" id="addFundsForm">
+
+                <div class="amount-display" id="amountDisplay">
+                    <span class="rupee">₹</span><span id="amountText" class="placeholder-zero">0.00</span>
+                </div>
+
+                <div class="field-group">
+                    <label class="field-label">From account</label>
+                    <div class="bank-picker" id="bankPicker">
+                        <select class="native-select" id="bankNativeSelect" name="bankAccountId" required>
+                            <option th:each="bank : ${linkedBanks}" th:value="${bank.id}" th:text="${bank.bankName + ' (' + bank.accountNumber + ')'}"></option>
+                        </select>
+
+                        <button type="button" class="bank-trigger" id="bankTrigger" aria-haspopup="listbox" aria-expanded="false">
+                            <span class="bank-avatar" id="bankAvatar">—</span>
+                            <span class="bank-trigger-text">
+                                <span class="bank-trigger-name" id="bankTriggerName">Select bank</span>
+                                <span class="bank-trigger-sub" id="bankTriggerSub"></span>
+                            </span>
+                            <span class="bank-chevron"></span>
+                        </button>
+
+                        <div class="bank-menu" id="bankMenu" role="listbox"></div>
+                    </div>
+                </div>
+
+                <div class="field-group">
+                    <label class="field-label">Amount in INR</label>
+                    <input type="number" class="amount-input" id="amountInput" name="amount" placeholder="Enter amount" min="1" step="0.01" required>
+                    <div class="chip-row">
+                        <button type="button" class="chip" data-amount="500">₹500</button>
+                        <button type="button" class="chip" data-amount="1000">₹1,000</button>
+                        <button type="button" class="chip" data-amount="2000">₹2,000</button>
+                        <button type="button" class="chip" data-amount="5000">₹5,000</button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-confirm">Confirm add</button>
+            </form>
+
+            <div th:if="${linkedBanks.isEmpty()}" class="empty-state">
+                You don't have any linked bank accounts yet. <a href="/dashboard/link-bank">Link a bank account</a> to add funds.
+            </div>
+        </div>
+    </div>
+
+    <!-- RAZORPAY SCRIPT LIBRARY -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+    <script>
+        // Custom bank picker
+        (function () {
+            var nativeSelect = document.getElementById('bankNativeSelect');
+            var picker = document.getElementById('bankPicker');
+            var trigger = document.getElementById('bankTrigger');
+            var menu = document.getElementById('bankMenu');
+            var avatarEl = document.getElementById('bankAvatar');
+            var nameEl = document.getElementById('bankTriggerName');
+            var subEl = document.getElementById('bankTriggerSub');
+
+            if (!nativeSelect || !trigger) return;
+
+            function parseOptionText(text) {
+                var match = text.match(/^(.*)\s\(([^)]*)\)\s*$/);
+                if (match) return { name: match[1].trim(), sub: match[2].trim() };
+                return { name: text.trim(), sub: '' };
+            }
+
+            function initials(name) {
+                var parts = name.trim().split(/\s+/).filter(Boolean);
+                if (parts.length === 0) return '—';
+                if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+                return (parts[0][0] + parts[1][0]).toUpperCase();
+            }
+
+            var options = Array.prototype.map.call(nativeSelect.options, function (opt) {
+                var parsed = parseOptionText(opt.textContent || '');
+                return { value: opt.value, name: parsed.name, sub: parsed.sub };
+            });
+
+            function renderMenu() {
+                menu.innerHTML = '';
+                options.forEach(function (o) {
+                    var row = document.createElement('div');
+                    row.className = 'bank-option' + (o.value === nativeSelect.value ? ' selected' : '');
+                    row.setAttribute('role', 'option');
+                    row.innerHTML =
+                        '<span class="bank-avatar">' + initials(o.name) + '</span>' +
+                        '<span class="bank-trigger-text">' +
+                            '<span class="bank-trigger-name">' + o.name + '</span>' +
+                            '<span class="bank-trigger-sub">' + o.sub + '</span>' +
+                        '</span>';
+                    row.addEventListener('click', function () {
+                        nativeSelect.value = o.value;
+                        nativeSelect.dispatchEvent(new Event('change'));
+                        updateTrigger();
+                        closeMenu();
+                    });
+                    menu.appendChild(row);
+                });
+            }
+
+            function updateTrigger() {
+                var current = options.find(function (o) { return o.value === nativeSelect.value; });
+                if (current) {
+                    avatarEl.textContent = initials(current.name);
+                    nameEl.textContent = current.name;
+                    subEl.textContent = current.sub;
+                }
+            }
+
+            function openMenu() {
+                renderMenu();
+                menu.classList.add('open');
+                trigger.classList.add('open');
+                trigger.setAttribute('aria-expanded', 'true');
+            }
+            function closeMenu() {
+                menu.classList.remove('open');
+                trigger.classList.remove('open');
+                trigger.setAttribute('aria-expanded', 'false');
+            }
+            function toggleMenu() {
+                if (menu.classList.contains('open')) closeMenu(); else openMenu();
+            }
+
+            trigger.addEventListener('click', toggleMenu);
+            document.addEventListener('click', function (e) {
+                if (!picker.contains(e.target)) closeMenu();
+            });
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') closeMenu();
+            });
+
+            if (options.length > 0) {
+                nativeSelect.value = options[0].value;
+                updateTrigger();
+            }
+        })();
+
+        // UI Amount display handler
+        (function () {
+            var input = document.getElementById('amountInput');
+            var text = document.getElementById('amountText');
+            var display = document.getElementById('amountDisplay');
+            var chips = document.querySelectorAll('.chip');
+
+            function formatAmount(value) {
+                if (!value) return null;
+                var num = parseFloat(value);
+                if (isNaN(num)) return null;
+                return num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }
+
+            function refresh() {
+                var formatted = formatAmount(input.value);
+                if (formatted) {
+                    text.textContent = formatted;
+                    text.classList.remove('placeholder-zero');
+                    display.classList.add('filled');
+                } else {
+                    text.textContent = '0.00';
+                    text.classList.add('placeholder-zero');
+                    display.classList.remove('filled');
+                }
+                chips.forEach(function (c) {
+                    c.classList.toggle('active', c.dataset.amount === input.value);
+                });
+            }
+
+            if (input) {
+                input.addEventListener('input', refresh);
+                chips.forEach(function (chip) {
+                    chip.addEventListener('click', function () {
+                        input.value = chip.dataset.amount;
+                        refresh();
+                        input.focus();
+                    });
+                });
+            }
+        })();
+
+        // --- RAZORPAY CHECKOUT INTERCEPTION LOGIC ---
+        (function () {
+            var form = document.getElementById('addFundsForm');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault(); // Stop normal form submission
+
+                    var amountInput = document.getElementById('amountInput').value;
+                    if (!amountInput || amountInput <= 0) return;
+
+                    var submitBtn = form.querySelector('.btn-confirm');
+                    var originalText = submitBtn.textContent;
+                    submitBtn.textContent = 'Processing...';
+                    submitBtn.disabled = true;
+
+                    // 1. Call Java backend to create Order
+                    fetch('/dashboard/create-order?amount=' + amountInput, { method: 'POST' })
+                        .then(response => response.json())
+                        .then(order => {
+                            
+                            // Reset button text
+                            submitBtn.textContent = originalText;
+                            submitBtn.disabled = false;
+
+                            if (order.error) {
+                                alert("Error initializing payment.");
+                                return;
+                            }
+
+                            // 2. Open Razorpay Popup
+                            var options = {
+                                "key": "rzp_test_TGEgZXObLrLXH4", // <-- PASTE YOUR TEST KEY ID HERE
+                                "amount": order.amount, // amount in paise
+                                "currency": "INR",
+                                "name": "PayWallet Hub",
+                                "description": "Add Funds to Wallet",
+                                "order_id": order.id, 
+                                "handler": function (response) {
+                                    // 3. Form submission for successful payment
+                                    var hiddenForm = document.createElement("form");
+                                    hiddenForm.method = "POST";
+                                    hiddenForm.action = "/dashboard/verify-payment";
+
+                                    var fields = {
+                                        "razorpay_payment_id": response.razorpay_payment_id,
+                                        "razorpay_order_id": response.razorpay_order_id,
+                                        "razorpay_signature": response.razorpay_signature,
+                                        "amount": amountInput
+                                    };
+
+                                    for (var key in fields) {
+                                        var input = document.createElement("input");
+                                        input.type = "hidden";
+                                        input.name = key;
+                                        input.value = fields[key];
+                                        hiddenForm.appendChild(input);
+                                    }
+                                    
+                                    document.body.appendChild(hiddenForm);
+                                    hiddenForm.submit();
+                                },
+                                "theme": {
+                                    "color": "#0f7a4c" // Perfectly matches your --emerald CSS variable!
+                                }
+                            };
+
+                            var rzp1 = new Razorpay(options);
+                            rzp1.on('payment.failed', function (response){
+                                alert("Payment Failed. Reason: " + response.error.description);
+                            });
+                            rzp1.open();
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert("Failed to initialize payment. Check console for details.");
+                            submitBtn.textContent = originalText;
+                            submitBtn.disabled = false;
+                        });
+                });
+            }
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>My QR Code</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root { --accent: #8b5cf6; } /* Purple for Personal ID */
+        body { background: #fafafa; font-family: 'Inter', sans-serif; color: #111; }
+        .card-minimal { max-width: 420px; margin: 100px auto; padding: 40px; background: #fff; border-radius: 24px; box-shadow: 0 10px 40px -10px rgba(0,0,0,0.05); text-align: center; }
+        
+        .qr-container {
+            background: #fff; border: 2px dashed #e5e5e5; border-radius: 20px; 
+            padding: 20px; margin: 30px 0; display: inline-block;
+        }
+        .qr-container img { border-radius: 10px; }
+        
+        .label-modern { font-size: 0.75rem; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.15em; }
+        .btn-modern { background: #111; color: #fff; border-radius: 12px; padding: 14px; font-weight: 600; font-size: 0.9rem; transition: 0.3s ease; border: none; width: 100%; display: block; text-decoration: none; }
+        .btn-modern:hover { background: var(--accent); transform: translateY(-2px); color: #fff;}
+    </style>
+</head>
+<body>
+    <div class="card-minimal">
+        <a href="/dashboard" class="text-secondary small fw-bold text-decoration-none d-block mb-4 text-start">&larr; BACK</a>
+        <h2 class="fw-bold mb-1">Receive Money</h2>
+        <p class="text-muted small">Show this code to receive funds instantly</p>
+        
+        <div class="qr-container">
+            <!-- Dynamically generating the QR Code using a free API based on User's Phone -->
+            <img th:src="@{'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + ${user.phoneNumber}}" alt="My QR Code">
+        </div>
+        
+        <div class="mb-4">
+            <span class="label-modern d-block">Wallet ID / Phone Number</span>
+            <span class="fs-4 fw-bold" th:text="${user.phoneNumber}">9876543210</span>
+        </div>
+        
+        <button class="btn-modern" onclick="window.print()">Print / Save QR</button>
+    </div>
+</body>
+</html>

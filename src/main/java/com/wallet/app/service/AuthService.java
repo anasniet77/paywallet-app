@@ -6,7 +6,6 @@ import com.wallet.app.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender; 
-import org.springframework.scheduling.annotation.Async; // 👈 1. Import added here
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.Random;
@@ -36,7 +35,8 @@ public class AuthService {
         return String.format("%06d", new Random().nextInt(999999));
     }
 
-    @Async // 👈 2. Annotation added here so it runs in the background
+    // 👈 @Async HAS BEEN COMMENTED OUT so the app waits for Google's exact response
+    // @Async 
     public void sendOtpEmail(String toEmail, String otp) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
@@ -44,11 +44,17 @@ public class AuthService {
             message.setTo(toEmail);
             message.setSubject("Secure Wallet Access Code - " + System.currentTimeMillis());
             message.setText("Your identity verification code is: " + otp + "\nValid for 5 minutes.");
-            mailSender.send(message);
+            
+            System.out.println("🚨 ATTEMPTING TO SEND EMAIL TO: " + toEmail);
+            
+            mailSender.send(message); // This is the line that actually talks to Google
+            
+            System.out.println("✅ EMAIL SUCCESSFULLY HANDED TO GOOGLE!");
+            
         } catch (Exception e) {
-            // This catches the network crash and prints it silently to the console 
-            // instead of rolling back your user registrations!
-            System.out.println("⚠️ SMTP Network Error: OTP code [" + otp + "] could not be emailed. Printing to Eclipse console instead!");
+            // 👈 This catches the network crash and prints the EXACT reason to the logs
+            System.err.println("❌ CRITICAL MAIL FATAL ERROR:");
+            e.printStackTrace(); 
         }
     }
 }

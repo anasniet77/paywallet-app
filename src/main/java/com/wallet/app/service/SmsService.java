@@ -5,6 +5,7 @@ import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.type.PhoneNumber;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async; // 👈 1. Import added here
 import org.springframework.stereotype.Service;
 
 @Service
@@ -25,6 +26,7 @@ public class SmsService {
         Twilio.init(accountSid, authToken);
     }
 
+    @Async // 👈 2. Added this so Twilio runs in the background
     public void sendSmsOtp(String targetPhoneNumber, String otpCode) {
         try {
             // Ensure phone numbers include country code (e.g., +91 for India)
